@@ -148,7 +148,7 @@ var _sssa_utils = (function (root) {
 
         return bigInt(string, 16);
     }
-
+//converts string to 128 byte string in hex
     function split_ints(secrets) {
         var result = [],
             working = [],
@@ -156,7 +156,6 @@ var _sssa_utils = (function (root) {
             hex_data = "";
 
         working = UTF8.setBytesFromString(secrets);
-
         for (i in working) {
             hex_data += Array((2 - working[i].toString(16).length) + 1).join(0) + working[i].toString(16);
         }
@@ -277,13 +276,13 @@ var _sssa_utils = (function (root) {
 
 var _sssa = (function(root) {
     var utils = _sssa_utils;
-
+    //split secret into points on a polynomial
     function create(minimum, shares, raw) {
         if (minimum > shares) {
             return;
         }
 
-        var secret = utils.split_ints(raw),
+        var secret = utils.split_ints(raw),//convert secret to hexedecimal 128 byte array(64 hex characters)
             numbers = [bigInt(0)],
             polynomial = [],
             result = [],
@@ -299,11 +298,13 @@ var _sssa = (function(root) {
                 }
                 numbers.push(value);
 
-                polynomial[i].push(value);
+                polynomial[i].push(value);//polynomial is 2-d array where el[0]=next hex character and el[1]=random number. Each element of polynomial is a polynomial of degree minimum+1. Where the secret is just one byte of the secret
+                //why is the secret only one byte of the secret?
             }
         }
 
-
+        //each share is one point on a polynomial whose secret is 16 bytes of the  actual secret (or one hexidecimal character).
+        //
         for (i = 0; i < shares; i++) {
             for (j in secret) {
                 value = utils.random();
@@ -316,8 +317,8 @@ var _sssa = (function(root) {
                     result[i] = "";
                 }
 
-                result[i] += utils.to_base64(value);
-                result[i] += utils.to_base64(utils.evaluate_polynomial(polynomial[j], value));
+                result[i] += utils.to_base64(value);//base64 byte  array of the x-value
+                result[i] += utils.to_base64(utils.evaluate_polynomial(polynomial[j], value));//added to base64 byte array of the y-value
             }
         }
 
